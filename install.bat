@@ -1,42 +1,40 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo 小红书自动化分析器 - 安装程序
+echo 小红书数据浏览器抓取器 - 安装
 echo ========================================
 echo.
 
-REM 检查 Python 是否安装
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo [错误] 未检测到 Python，请先安装 Python 3.8+
-    echo 下载地址：https://www.python.org/downloads/
+    echo [错误] 未检测到 Python
+    echo 请先安装：https://www.python.org/downloads/
+    echo 安装时勾选 "Add Python to PATH"
     pause
     exit /b 1
 )
 
-echo [1/3] 检查 Python 环境... OK
+echo [1/3] Python 已安装
 python --version
 
 echo.
-echo [2/3] 安装依赖包...
-pip install requests -q
-if errorlevel 1 (
-    echo [警告] 依赖安装失败，请手动运行：pip install requests
-)
+echo [2/3] 安装依赖...
+pip install -r requirements.txt
 
 echo.
-echo [3/3] 创建数据目录...
+echo [3/3] 安装 Playwright 浏览器...
+playwright install chromium
+
+echo.
 if not exist "data" mkdir data
 if not exist "logs" mkdir logs
 
-echo.
 echo ========================================
 echo 安装完成！
 echo ========================================
 echo.
 echo 下一步：
-echo 1. 编辑 config.json 配置飞书 Webhook（可选）
-echo 2. 双击 run.bat 运行程序
-echo 3. 配置定时任务每天自动执行
+echo 1. 确保 Chrome 已启动（端口 15264）
+echo 2. 双击 run.bat 运行
 echo.
 pause
