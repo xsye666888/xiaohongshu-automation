@@ -103,49 +103,88 @@ class XiaohongshuScraper:
             'fans_total': 0,
             'fans_growth': 0,
             'note_views': 0,
+            'note_likes': 0,
+            'note_collections': 0,
+            'note_comments': 0,
+            'note_shares': 0,
+            'note_clicks': 0,
+            'note_cart_adds': 0,
             'error': None
         }
         
         try:
-            # 打开数据中心
-            logger.info("📈 打开数据中心...")
-            self.page.goto(f"{self.base_url}/enterprise/data", timeout=30000, wait_until="domcontentloaded")
-            time.sleep(5)  # 等待页面加载
+            # 打开商品笔记页面
+            logger.info("📈 打开商品笔记数据页面...")
+            self.page.goto(f"{self.base_url}/app-datacenter/goods-note", timeout=30000, wait_until="domcontentloaded")
+            time.sleep(5)
             
-            # 尝试抓取数据（使用通用的选择器）
-            # 注意：实际选择器需要根据页面结构调整
+            # 使用文本定位查找数据卡片
+            logger.info(" 抓取笔记互动数据...")
             
-            # 查找 GMV 数据
+            # 阅读次数
             try:
-                gmv_el = self.page.query_selector('[data-e2e="gmv-value"], .gmv-value, [class*="gmv"]')
-                if gmv_el:
-                    gmv_text = gmv_el.inner_text()
-                    data['gmv'] = self._parse_number(gmv_text)
-                    logger.info(f"✅ GMV: ¥{data['gmv']:,.0f}")
+                el = self.page.locator('text=阅读次数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_views'] = self._parse_number(text)
+                logger.info(f"✅ 阅读次数：{data['note_views']}")
             except Exception as e:
-                logger.warning(f"⚠️ GMV 抓取失败：{e}")
+                logger.warning(f"⚠️ 阅读次数抓取失败：{e}")
             
-            # 查找订单数
+            # 点赞次数
             try:
-                orders_el = self.page.query_selector('[data-e2e="order-value"], .order-value, [class*="order"]')
-                if orders_el:
-                    orders_text = orders_el.inner_text()
-                    data['orders'] = self._parse_number(orders_text)
-                    logger.info(f"✅ 订单数：{data['orders']}")
+                el = self.page.locator('text=点赞次数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_likes'] = self._parse_number(text)
+                logger.info(f"✅ 点赞次数：{data['note_likes']}")
             except Exception as e:
-                logger.warning(f"⚠️ 订单数抓取失败：{e}")
+                logger.warning(f"⚠️ 点赞次数抓取失败：{e}")
             
-            # 查找粉丝数据
+            # 收藏次数
             try:
-                fans_el = self.page.query_selector('[data-e2e="fans-value"], .fans-value, [class*="fans"]')
-                if fans_el:
-                    fans_text = fans_el.inner_text()
-                    data['fans_total'] = self._parse_number(fans_text)
-                    logger.info(f"✅ 粉丝总数：{data['fans_total']:,.0f}")
+                el = self.page.locator('text=收藏次数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_collections'] = self._parse_number(text)
+                logger.info(f"✅ 收藏次数：{data['note_collections']}")
             except Exception as e:
-                logger.warning(f"⚠️ 粉丝数据抓取失败：{e}")
+                logger.warning(f"⚠️ 收藏次数抓取失败：{e}")
             
-            # 截图保存（调试用）
+            # 评论次数
+            try:
+                el = self.page.locator('text=评论次数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_comments'] = self._parse_number(text)
+                logger.info(f"✅ 评论次数：{data['note_comments']}")
+            except Exception as e:
+                logger.warning(f"⚠️ 评论次数抓取失败：{e}")
+            
+            # 分享次数
+            try:
+                el = self.page.locator('text=分享次数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_shares'] = self._parse_number(text)
+                logger.info(f"✅ 分享次数：{data['note_shares']}")
+            except Exception as e:
+                logger.warning(f"⚠️ 分享次数抓取失败：{e}")
+            
+            # 笔记商品点击次数
+            try:
+                el = self.page.locator('text=笔记商品点击次数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_clicks'] = self._parse_number(text)
+                logger.info(f"✅ 笔记商品点击次数：{data['note_clicks']}")
+            except Exception as e:
+                logger.warning(f"⚠️ 笔记商品点击次数抓取失败：{e}")
+            
+            # 笔记加购件数
+            try:
+                el = self.page.locator('text=笔记加购件数').locator('..').locator('..').first
+                text = el.inner_text(timeout=5000)
+                data['note_cart_adds'] = self._parse_number(text)
+                logger.info(f"✅ 笔记加购件数：{data['note_cart_adds']}")
+            except Exception as e:
+                logger.warning(f"⚠️ 笔记加购件数抓取失败：{e}")
+            
+            # 截图保存
             screenshot_path = Path('logs') / f'screenshot_{date}.png'
             self.page.screenshot(path=str(screenshot_path), full_page=True)
             logger.info(f"📸 截图已保存：{screenshot_path}")
@@ -182,16 +221,16 @@ def generate_report(data):
 ━━━━━━━━━━━━━━━━━━━━
 日期：{data.get('date', 'N/A')}
 
-💰 电商数据
-  GMV: ¥{data.get('gmv', 0):,.0f}
-  订单数：{int(data.get('orders', 0))}
+📝 笔记互动数据
+  阅读次数：{int(data.get('note_views', 0)):,}
+  点赞次数：{int(data.get('note_likes', 0)):,}
+  收藏次数：{int(data.get('note_collections', 0)):,}
+  评论次数：{int(data.get('note_comments', 0)):,}
+  分享次数：{int(data.get('note_shares', 0)):,}
 
-👥 粉丝数据
-  粉丝总数：{data.get('fans_total', 0):,.0f}
-  净增长：{data.get('fans_growth', 0):+d}
-
-📝 笔记数据
-  总阅读：{data.get('note_views', 0):,}
+🛒 转化数据
+  笔记商品点击：{int(data.get('note_clicks', 0)):,}
+  笔记加购件数：{int(data.get('note_cart_adds', 0)):,}
 
 ━━━━━━━━━━━━━━━━━━━━
 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
